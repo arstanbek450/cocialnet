@@ -1,28 +1,39 @@
 from django.shortcuts import render, HttpResponse, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.views import View
 from django.db.models import Q
-from django.views.generic import ListView
+from django.views import View
+from django.views.generic import ListView, DetailView
+from django_filters.views import FilterView
 from .models import *
 from .forms import *
+from .filters import *
 
 
 class NoContextView(View):
-    template_name = None # required
+    template_name = None  # required
 
     def get(self, request):
         return render(request, self.template_name)
 
+
 class AboutView(NoContextView):
     template_name = 'about.html'
+
 
 class ContactsView(NoContextView):
     template_name = 'contacts.html'
 
+
 class QuestionsView(NoContextView):
     template_name = 'faq.html'
 
+
+# class AboutView(View):
+#     def get(self, request):
+#         return render(request, 'about.html')
+
+# Create your views here.
 def homepage(request):
     context = {}
     posts_list = Post.objects.all()  # SELECT * FROM Post;
@@ -42,9 +53,12 @@ def post_detail(request, id):
     context["comment_form"] = comment_form
     comments_list = Comment.objects.filter(post=post_object)
     context['comments'] = comments_list
+    # от начала до сюда
+
     if request.method == "GET":
         return render(request, "post_info.html", context)
     elif request.method == "POST":
+        # от сюда до конца
         if 'like' in request.POST:
             post_object.likes += 1
             post_object.save()
@@ -66,18 +80,6 @@ def post_detail(request, id):
                     text=f"{request.user.username} оставил комментарий"
                 )
                 return HttpResponse("done")
-
-
-def profile_detail(request, id):
-    context = {}
-    profile = Profile.objects.get(id=id)
-    context['profile'] = profile
-
-    if request.method == "POST":
-        profile.subscribers.add(request.user)
-        profile.save()
-
-    return render(request, 'profile_detail.html', context)
 
 
 class PostDetailView(View):
@@ -123,7 +125,20 @@ class PostDetailView(View):
 
 class PostListView(ListView):
     queryset = Post.objects.all()
-    # template_name = 'core/post_list.html
+    # template_name = 'core/post_list.html'
+
+
+def profile_detail(request, id):
+    context = {}
+    profile = Profile.objects.get(id=id)
+    context['profile'] = profile
+
+    if request.method == "POST":
+        profile.subscribers.add(request.user)
+        profile.save()
+
+    return render(request, 'profile_detail.html', context)
+
 
 def add_profile(request):
     profile_form = ProfileForm()
@@ -143,19 +158,50 @@ def add_profile(request):
 
 
 def shorts(request):
-    context = {
-        'shorts_list': Short.objects.all()
-    }
+    short_filter = ShortFilter(
+        request.GET,
+        queryset=Short.objects.all()
+    )
+    context = {'short_filter': short_filter}
     return render(request, "shorts.html", context)
 
 
+class ShortsListView(ListView):
+    queryset = Short.objects.all()
+
+
+class ShortsFilterView(FilterView):
+    model = Short
+    filterset_class = ShortFilter
+    # filterset_fields = ['id', 'user', 'views_qty']
+
+
 def short_info(request, id):
-    short = Short.objects.get(id=id)
+    try:
+        short = Short.objects.get(id=id)
+    except Short.DoesNotExist:
+        return HttpResponse(
+            "Ошибка 404. Такого объекта не существует"
+        )
     short.views_qty += 1
-    short.viewed_users.add(request.user)
+    if request.user.is_authenticated:
+        short.viewed_users.add(request.user)
     short.save()
     context = {"short": short}
     return render(request, "short_info.html", context)
+
+
+class ShortDetailView(DetailView):
+    queryset = Short.objects.all()
+    template_name = "short_info.html"
+
+    def get(self, request, *args, **kwargs):
+        short = self.get_object()
+        short.views_qty += 1
+        if request.user.is_authenticated:
+            short.viewed_users.add(request.user)
+        short.save()
+        return super().get(request, *args, **kwargs)
 
 
 def saved_posts_list(request):
@@ -298,6 +344,23 @@ def search_result(request):
     return render(request, 'home.html', context)
 
 
+class SearchView(View):
+    def get(self, request):
+        return render(request, 'search.html')
+
+
+class SearchResultView(View):
+    def get(self, request):
+        key_word = request.GET["key_word"]
+        # posts = Post.objects.filter(name__icontains=key_word)
+        posts = Post.objects.filter(
+            Q(name__icontains=key_word) |
+            Q(description__icontains=key_word)
+        )
+        context = {"posts": posts}
+        return render(request, 'home.html', context)
+
+
 def subscribe(request, profile_id):
     profile = Profile.objects.get(id=profile_id)
     profile.subscribers.add(request.user)
@@ -334,6 +397,20 @@ def notifications(request):
     )
 
 
+class NotificationView(View):
+    def get(self, request):
+        notifications_list = Notification.objects.filter(user=request.user)
+        for notification in notifications_list:
+            notification.is_showed = True
+        Notification.objects.bulk_update(notifications_list, ['is_showed'])
+        context = {"notifications": notifications_list}
+        return render(
+            request=request,
+            template_name='notifications.html',
+            context=context,
+        )
+
+
 def comment_edit(request, id):
     comment = Comment.objects.get(id=id)
 
@@ -351,19 +428,6 @@ def comment_edit(request, id):
     context = {"form": form}
     return render(request, 'comment_edit.html', context)
 
-
-class NotificationView(View):
-    def get(self, request):
-        notifications_list = Notification.objects.filter(user=request.user)
-        for notification in notifications_list:
-            notification.is_showed = True
-        Notification.objects.bulk_update(notifications_list, ['is_showed'])
-        context = {"notifications": notifications_list}
-        return render(
-            request=request,
-            template_name='notifications.html',
-            context=context,
-        )
 
 def comment_delete(request, id):
     comment = Comment.objects.get(id=id)

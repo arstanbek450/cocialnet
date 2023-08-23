@@ -7,10 +7,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Social НЭТ</title>
-
     {% bootstrap_css %}
     {% bootstrap_javascript %}
-
     <link
         rel="stylesheet"
         href="{% static 'main.css' %}"
@@ -40,7 +38,7 @@
                 О нас
               </a>
             </div>
-             <div class="my-focus">
+            <div class="my-focus">
               <a href="{% url 'faq' %}">
                 FAQ
               </a>
@@ -50,7 +48,7 @@
                 Контакты
               </a>
             </div>
-             <div class="my-focus">
+            <div class="my-focus">
               <a href="{% url 'posts-list-cbv' %}">
                 Посты
               </a>
@@ -66,11 +64,20 @@
                 Shorts
               </a>
             </div>
+            <div class="my-focus">
+              <a href="{% url 'shorts-cbv' %}">
+                Shorts-CBV
+              </a>
+            </div>
+            <div class="my-focus">
+              <a href="{% url 'shorts-filter' %}">
+                Shorts-Filter
+              </a>
+            </div>
           {% if request.user.is_authenticated %}
             <div class="my-focus">Сообщения</div>
             <div class="my-focus">
-                <a href="{% url 'notifications-cbv' %}">
-              <a href="{% url 'notifications' %}">
+              <a href="{% url 'notifications-cbv' %}">
                 Уведомления -
                 {{ request.user.notification_set.count }}
               </a>
