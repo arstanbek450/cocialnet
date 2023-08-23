@@ -27,6 +27,7 @@ urlpatterns = [
     path('posts/<int:id>/', post_detail, name='post-detail'),
     path('post-cbv/<int:id>/', PostDetailView.as_view(), name='post-detail-cbv'),
     path('posts-list-cbv/', PostListView.as_view(), name='posts-list-cbv'),
+    path('posts-filter/', PostsFilterView.as_view(), name='posts-filter'),
     path('profile/<int:id>/', profile_detail, name='profile'),
     path('add-profile/', add_profile, name='add-profile'),
     path('shorts/', shorts, name='shorts-list'),

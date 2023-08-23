@@ -16,3 +16,19 @@ class ShortFilter(django_filters.FilterSet):
         model = Short
         fields = ['user']
 
+
+class PostFilter(django_filters.FilterSet):
+    likes_gt = django_filters.NumberFilter(
+        field_name='likes',
+        lookup_expr='gt'
+    )
+
+    likes_lt = django_filters.NumberFilter(
+        field_name='likes',
+        lookup_expr='lt'
+    )
+
+    class Meta:
+        model = Post
+        fields = ['creator']
+

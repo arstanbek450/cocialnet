@@ -165,6 +165,17 @@ def shorts(request):
     context = {'short_filter': short_filter}
     return render(request, "shorts.html", context)
 
+def posts(request):
+    post_filter = PostFilter(
+        request.GET,
+        queryset=Post.objects.all()
+    )
+    context = {'post_filter': post_filter}
+    return render(request, "post_list.html", context)
+
+
+
+
 
 class ShortsListView(ListView):
     queryset = Short.objects.all()
@@ -175,6 +186,10 @@ class ShortsFilterView(FilterView):
     filterset_class = ShortFilter
     # filterset_fields = ['id', 'user', 'views_qty']
 
+
+class PostsFilterView(FilterView):
+    model = Post
+    filterset_class = PostFilter
 
 def short_info(request, id):
     try:

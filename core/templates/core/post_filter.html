@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load django_bootstrap5 %}
+
+{% block content %}
+ <form method="get">
+            {% bootstrap_form filter.form %}
+            <button class="btn btn-info">Применить</button>
+ </form>
+    <div class="row container">
+        {% for post in filter.qs %}
+            <div class="post col-lg-4 col-md-6">
+                <a href="/posts/{{ post.id }}">
+                    {{ post.name }}
+                </a>
+                {% if post.photo %}
+                    <div>
+                        <a href="/posts/{{ post.id }}">
+                            <img src="{{ post.photo.url }}">
+                        </a>
+                    </div>
+                {% endif %}
+                <p>
+                    Лайки: {{ post.likes }}
+                </p>
+<!--                 <hr> прямая линия-->
+            </div>
+        {% empty %}
+        <div>Нет записей, удовлетворяющих указанным условиям</div>
+
+        {% endfor %}
+    </div>
+{% endblock %}
