@@ -1,0 +1,30 @@
+* h1 {
+    color: rgb(5, 0, 138);
+    background-color: #a7a7a7;
+} */
+
+.hulk {
+    color: green;
+    font-size: 36px;
+}
+
+.post {
+    height: 200px;
+}
+
+.post img {
+    height: 150px;
+}
+
+.post:hover {
+    background-color: #ddd;
+}
+
+.my-focus:hover {
+    font-size: 18px;
+}
+
+.custom-circle {
+    border: 1px solid red;
+    border-radius: 50%;
+}
