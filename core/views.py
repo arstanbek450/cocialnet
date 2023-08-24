@@ -5,10 +5,11 @@ from django.db.models import Q
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django_filters.views import FilterView
-from .models import *
+
+
 from .forms import *
 from .filters import *
-
+import requests
 
 class NoContextView(View):
     template_name = None  # required
@@ -126,6 +127,37 @@ class PostDetailView(View):
 class PostListView(ListView):
     queryset = Post.objects.all()
     # template_name = 'core/post_list.html'
+
+
+class PostsFromtoDOS(View):
+    def get(self, request):
+        context = {}
+        response = requests.get('https://jsonplaceholder.typicode.com/todos/')
+        data = response.json()
+        context["posts"] = data
+        return render(request, 'core/posts_from_todos.html', context)
+
+class  PostDetailFromtoDOS(View):
+    def get(self, request, *args, **kwargs):
+        id = kwargs['id']
+        response = requests.get(f'https://jsonplaceholder.typicode.com/todos/{id}')
+        post_data = response.json()
+        return render(request, 'core/post_from_todos.html', {"post": post_data})
+
+class PostsFromAPI(View):
+    def get(self, request):
+        context = {}
+        response = requests.get("https://jsonplaceholder.typicode.com/posts")
+        data = response.json()
+        context["posts"] = data
+        return render(request, 'core/posts_from_api.html', context)
+
+class PostDetailFromAPI(View):
+    def get(self, request, *args, **kwargs):
+        id = kwargs['id']
+        response = requests.get(f'https://jsonplaceholder.typicode.com/posts/{id}')
+        post_data = response.json()
+        return render(request, 'core/post_from_api.html', {'post': post_data})
 
 
 def profile_detail(request, id):
